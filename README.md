@@ -95,10 +95,11 @@ DeviceProcessEvents
 
 ### SECTION 1: RANSOMWARE ATTRIBUTION AND IMPACT
 
-**Threat Actor:** Akira  
-**Negotiation Portal:** `akiral2iz6a7qgd3ayp3l6yub7xx2uep76idk3u2kollpj5z3z636bad.onion`  
-**Victim ID:** `813R-QWJM-XKIJ`  
-**Encrypted Extension:** `.akira`  
+**Cyber Range Investigation Flags:**
+* **🚩 Q1 - Threat Actor:** What ransomware group is responsible? **Akira**
+* **🚩 Q2 - Negotiation Portal:** What is the TOR negotiation address? **`akiral2iz6a7qgd3ayp3l6yub7xx2uep76idk3u2kollpj5z3z636bad.onion`**
+* **🚩 Q3 - Victim ID:** What is the company's unique ID? **`813R-QWJM-XKIJ`**
+* **🚩 Q4 - Encrypted Extension:** What file extension is added to encrypted files? **`.akira`**
 
 **Analysis:** During the initial investigation of the compromised file server, a text document named `akira_readme.txt` was discovered among the encrypted files. Reviewing the contents of this ransom note provided direct attribution for the attack, as the threat actors explicitly introduced themselves by stating, "Hi, We are Akira". The document instructed the victim to use the TOR network for negotiations using the provided ID. It also confirmed the use of AES-256 encryption, appending the `.akira` extension to all affected files across the compromised systems.
 
@@ -108,10 +109,15 @@ DeviceProcessEvents
 
 ### SECTION 2: ATTACKER INFRASTRUCTURE
 
-**Payload Domain:** `sync.cloud-endpoint.net`  
-**Analysis:** To identify where the attacker downloaded their tools, a hunt was conducted within the `DeviceNetworkEvents` table to review external network connections initiated by PowerShell on the compromised device. The log results revealed PowerShell downloading payloads directly from the external domain `sync.cloud-endpoint.net`.
+**Cyber Range Investigation Flags:**
+* **🚩 Q5 - Payload Domain:** What domain hosted the payloads? **`sync.cloud-endpoint.net`**
+* **🚩 Q6 - Ransomware Staging:** What domain staged the ransomware? **`cdn.cloud-endpoint.net`**
+* **🚩 Q7 - C2 IP Addresses:** What are the two C2 IP addresses? **`172.67.174.46, 104.21.30.237`**
+* **🚩 Q8 - Remote Tool Relay:** What is the remote tool relay domain that was used? **`relay-0b975d23.net.anydesk.com`**
 
-**Query Used:**
+**Analysis:** To identify where the attacker downloaded their tools, a hunt was conducted within the `DeviceNetworkEvents` table to review external network connections initiated by PowerShell on the compromised device. The log results revealed PowerShell downloading payloads directly from the external domain `sync.cloud-endpoint.net`. Following this discovery, a pivot for the root domain `cloud-endpoint.net` revealed a secondary staging domain (`cdn.cloud-endpoint.net`). Further investigation into the initial payload domain identified the specific C2 IP addresses, while logs for `anydesk.exe` identified the attacker's remote tool relay infrastructure.
+
+**Query Used (Payload Domain):**
 ```kusto
 DeviceNetworkEvents
 | where DeviceName == "as-pc2"
@@ -122,10 +128,7 @@ DeviceNetworkEvents
 ```
 *<img width="800" alt="Q5" src="https://github.com/user-attachments/assets/99e84832-125a-42a3-b32d-5c905f9c95b9" />*
 
-**Ransomware Staging Domain:** `cdn.cloud-endpoint.net`  
-**Analysis:** Following the discovery of the initial payload domain, a pivot was conducted to identify related attacker infrastructure. A search within `DeviceNetworkEvents` for the root domain `cloud-endpoint.net` revealed a secondary domain. The logs showed later outbound connections to `cdn.cloud-endpoint.net`, identifying it as the staging domain for the ransomware payload.
-
-**Query Used:**
+**Query Used (Ransomware Staging Domain):**
 ```kusto
 DeviceNetworkEvents
 | where RemoteUrl contains "cloud-endpoint.net"
@@ -134,10 +137,7 @@ DeviceNetworkEvents
 ```
 *<img width="800" alt="Q6" src="https://github.com/user-attachments/assets/4bdc314e-fe36-49b5-b1a1-274518c4a9fc" />*
 
-**Command and Control (C2) IPs:** `172.67.174.46`, `104.21.30.237`  
-**Analysis:** During the investigation of the initial payload domain (`sync.cloud-endpoint.net`), the network logs were reviewed to identify the specific IP addresses hosting the attacker's infrastructure. The malicious domain resolved to two distinct C2 IP addresses.
-
-**Query Used:**
+**Query Used (C2 IPs):**
 ```kusto
 DeviceNetworkEvents
 | where RemoteUrl == "sync.cloud-endpoint.net"
@@ -145,10 +145,7 @@ DeviceNetworkEvents
 ```
 *<img width="800" alt="Q7" src="https://github.com/user-attachments/assets/2b80b088-3ffb-4f2f-952c-740333394415" />*
 
-**Remote Tool Relay:** `relay-0b975d23.net.anydesk.com`  
-**Analysis:** To identify the infrastructure used for interactive remote access, network connections initiated by known remote access tools were reviewed. Querying `DeviceNetworkEvents` for `anydesk.exe` revealed outbound connections to the vendor's infrastructure. The specific relay domain used by the threat actor was identified as `relay-0b975d23.net.anydesk.com`.
-
-**Query Used:**
+**Query Used (Remote Tool Relay):**
 ```kusto
 DeviceNetworkEvents
 | where InitiatingProcessFileName =~ "anydesk.exe"
@@ -162,10 +159,13 @@ DeviceNetworkEvents
 
 ### SECTION 3: DEFENSE EVASION
 
-**Evasion Script:** `kill.bat`  
-**Script SHA256:** `0e7da57d92eaa6bda9d0bbc24b5f0827250aa42f295fd056ded50c6e3c3fb96c`  
+**Cyber Range Investigation Flags:**
+* **🚩 Q9 - Evasion Script:** What script disabled security? **`kill.bat`**
+* **🚩 Q10 - Evasion Hash:** What is the SHA256 of the script? **`0e7da57d92eaa6bda9d0bbc24b5f0827250aa42f295fd056ded50c6e3c3fb96c`**
+* **🚩 Q11 - Registry Tampering:** What registry value disabled Windows Defender? **`DisableAntiSpyware`**
+* **🚩 Q12 - Registry Timestamp:** What time was the registry modified? **`21:03:42`**
 
-**Analysis:** To understand how the threat actor bypassed security controls, an analysis of the initial Microsoft Defender alert was conducted. By querying `DeviceProcessEvents` for commands associated with disabling antivirus protections, the logs confirmed that the attacker executed a batch script named `kill.bat`. The logs confirmed the script was dropped in the `C:\ProgramData\` directory.
+**Analysis:** To understand how the threat actor bypassed security controls, an analysis of the initial Microsoft Defender alert was conducted. By querying `DeviceProcessEvents` for commands associated with disabling antivirus protections, the logs confirmed that the attacker executed a batch script named `kill.bat`. The logs confirmed the script was dropped in the `C:\ProgramData\` directory. To verify the exact system changes, `DeviceRegistryEvents` were reviewed, confirming the script successfully modified the registry at exactly 21:03:42 UTC by creating the value `DisableAntiSpyware` and setting its data to 1, effectively disabling Microsoft Defender's protections.
 
 **Query Used (Process Execution):**
 ```kusto
@@ -182,9 +182,6 @@ DeviceFileEvents
 | project Timestamp, DeviceName, ActionType, FileName, FolderPath, SHA256
 ```
 *<img width="800" alt="Q10" src="https://github.com/user-attachments/assets/cb691c4d-42bf-4618-9ee6-3db94cc10500" />*
-
-**Registry Tampering:** `DisableAntiSpyware` (Set at 21:03:42 UTC)  
-**Analysis:** To verify the exact system changes made by the evasion script, `DeviceRegistryEvents` were reviewed for the compromised host. The logs confirmed that the script successfully modified the registry at exactly 21:03:42 UTC by creating the value `DisableAntiSpyware` and setting its data to 1, effectively disabling Microsoft Defender's protections.
 
 **Query Used (Registry Value):**
 ```kusto
@@ -209,8 +206,9 @@ DeviceRegistryEvents
 
 ### SECTION 4: CREDENTIAL ACCESS
 
-**Discovery Command:** `tasklist | findstr lsass`  
-**Targeted Named Pipe:** `\Device\NamedPipe\lsass`  
+**Cyber Range Investigation Flags:**
+* **🚩 Q13 - Process Hunt:** What command was used? **`tasklist | findstr lsass`**
+* **🚩 Q14 - Credential Pipe:** What named pipe was accessed? **`\Device\NamedPipe\lsass`**
 
 **Analysis:** To determine how the attacker targeted credentials, process execution logs (`DeviceProcessEvents`) were reviewed for built-in discovery commands. A search for `tasklist` revealed that the attacker executed the command `cmd.exe /c "tasklist | findstr lsass"`. Because the attacker specifically targeted the `lsass` process, `DeviceEvents` were queried for named pipe connections containing "lsass". The results successfully identified multiple connections, confirming the attacker accessed the `\Device\NamedPipe\lsass` pipe to facilitate credential theft.
 
@@ -238,10 +236,11 @@ DeviceEvents
 
 ### SECTION 5: INITIAL ACCESS PATHWAY
 
-**Compromised Account:** `david.mitchell`  
-**Remote Access Tool:** `AnyDesk.exe`  
-**Execution Path:** `C:\Users\Public\`  
-**Attacker IP:** `88.97.164.155`  
+**Cyber Range Investigation Flags:**
+* **🚩 Q15 - Remote Access Tool:** What remote access tool was used? **`AnyDesk`**
+* **🚩 Q16 - Suspicious Execution Path:** What user was compromised on AS-PC2? *(Note: Expected path output)* **`C:\Users\Public\`**
+* **🚩 Q17 - Attacker IP:** What is the attacker's external IP? **`88.97.164.155`**
+* **🚩 Q18 - Compromised User:** What user was compromised on AS-PC2? **`david.mitchell`**
 
 **Analysis:** To identify the pre-staged remote access tool used by the threat actor, process execution logs were reviewed. The attacker utilized a legitimate remote management application (AnyDesk) to maintain persistent, unauthorized access to the system. `DeviceProcessEvents` confirmed that the threat actor utilized the hijacked account `david.mitchell` to launch the application. Furthermore, the tool was executed from a highly suspicious directory (`C:\Users\Public\`), bypassing standard installation paths to evade detection. Subsequent direct connections were established with an external, unassociated IP address (`88.97.164.155`).
 
@@ -274,7 +273,6 @@ DeviceProcessEvents
 ```
 *<img width="800" alt="Q18" src="https://github.com/user-attachments/assets/9a56404f-b715-4a38-8aa6-81c4deb09d6a" />*
 
-
 **Query Used (Attacker IP):**
 ```kusto
 DeviceNetworkEvents
@@ -290,12 +288,13 @@ DeviceNetworkEvents
 
 ### SECTION 6: COMMAND & CONTROL (C2)
 
-**Primary C2 Beacon:** `wsync.exe`  
-**Deployment Location:** `C:\ProgramData\`  
-**Original Beacon SHA256:** `66b876c52946f4aed47dd696d790972ff265b6f4451dab54245bc4ef1206d90b`  
-**Replacement Beacon SHA256:** `0072ca0d0adc9a1b2e1625db4409f57fc32b5a09c414786bf08c4d8e6a073654`  
+**Cyber Range Investigation Flags:**
+* **🚩 Q19 - Primary Beacon:** What new C2 beacon was deployed? **`wsync.exe`**
+* **🚩 Q20 - Beacon Location:** What directory was the new beacon deployed to? **`C:\ProgramData\`**
+* **🚩 Q21 - Beacon Hash:** What is the SHA256 of the original beacon? **`66b876c52946f4aed47dd696d790972ff265b6f4451dab54245bc4ef1206d90b`**
+* **🚩 Q22 - Beacon Creation:** What is the SHA256 of the replacement beacon on AS-PC2? **`0072ca0d0adc9a1b2e1625db4409f57fc32b5a09c414786bf08c4d8e6a073654`**
 
-**Analysis:** To find the Command and Control (C2) beacon, file creation logs were searched. By filtering for files created by PowerShell, a highly suspicious file named `wsync.exe` was found in the hidden `C:\ProgramData\` folder. Following the failure of the initial beacon at 20:22 UTC, the threat actor deployed a secondary, modified version at 20:44 UTC. Both hashes were successfully recovered from the file modification logs.
+**Analysis:** To find the Command and Control (C2) beacon, file creation logs were searched. By filtering for files created by PowerShell, a highly suspicious file named `wsync.exe` was found deployed into the hidden `C:\ProgramData\` folder. Following the failure of the initial beacon at 20:22 UTC, the threat actor deployed a secondary, modified version at 20:44 UTC. Both hashes were successfully recovered from the file modification logs.
 
 **Query Used (Beacon Creation & Location):**
 ```kusto
@@ -325,10 +324,11 @@ DeviceFileEvents
 
 ### SECTION 7: RECONNAISSANCE
 
-**Scanner Tool:** `scan.exe` (Advanced IP Scanner)  
-**Scanner SHA256:** `26d5748ffe6bd95e3fee6ce184d388a1a681006dc23a0f08d53c083c593c193b`  
-**Execution Arguments:** `/portable "C:/Users/david.mitchell/Downloads/" /lng en_us`  
-**Enumerated IPs:** `10.1.0.154`, `10.1.0.183`  
+**Cyber Range Investigation Flags:**
+* **🚩 Q23 - Scanner Tool:** What scanner tool was used? **`scan.exe`**
+* **🚩 Q24 - Scanner Hash:** What is the SHA256 of the scanner tool? **`26d5748ffe6bd95e3fee6ce184d388a1a681006dc23a0f08d53c083c593c193b`**
+* **🚩 Q25 - Scanner Execution:** What arguments were passed to the scanner on execution? **`/portable "C:/Users/david.mitchell/Downloads/" /lng en_us`**
+* **🚩 Q26 - Network Enumeration:** What two internal IPs were enumerated? **`10.1.0.154, 10.1.0.183`**
 
 **Analysis:** The data indicates the attacker downloaded a packed executable named `scan.exe`, which subsequently extracted its contents (`advanced_ip_scanner.exe`) into a temporary directory. `DeviceProcessEvents` revealed that the tool was run in portable mode to minimize forensic artifacts on the disk. Following the scan, the threat actor enumerated network shares on specific hosts by executing `net.exe view \\<IP>` commands, targeting internal IP addresses `10.1.0.154` and `10.1.0.183` from the `as-srv` machine.
 
@@ -376,7 +376,8 @@ union DeviceProcessEvents, DeviceEvents
 
 ### SECTION 8: LATERAL MOVEMENT
 
-**Compromised Lateral Account:** `as.srv.administrator`  
+**Cyber Range Investigation Flags:**
+* **🚩 Q27 - Lateral Account:** What account was used to authenticate to AS-SRV? **`as.srv.administrator`**
 
 **Analysis:** Analysis of `DeviceProcessEvents` on the compromised server (`as-srv`) confirms that the threat actor utilized the `as.srv.administrator` account to authenticate and execute subsequent reconnaissance commands, completing their lateral movement phase.
 
@@ -394,8 +395,9 @@ union DeviceProcessEvents, DeviceEvents
 
 ### SECTION 9: TOOL TRANSFER METHODS
 
-**Primary Method (LOLBIN):** `bitsadmin.exe`  
-**Fallback Method:** `Invoke-WebRequest`  
+**Cyber Range Investigation Flags:**
+* **🚩 Q28 - Download Method:** What LOLBIN was first used to download tools? **`bitsadmin.exe`**
+* **🚩 Q29 - Fallback Method:** What PowerShell cmdlet was used? **`Invoke-WebRequest`**
 
 **Analysis:** The threat actor initially used the built-in utility `bitsadmin.exe` to download tools. They attempted to download `scan.exe` to multiple locations, indicating execution issues. Later, they successfully used bitsadmin to download `kill.bat`. After initial download attempts failed, the threat actor opened an interactive PowerShell session and utilized the `Invoke-WebRequest` cmdlet as a fallback method to successfully download `scan.exe`.
 
@@ -424,9 +426,10 @@ DeviceEvents
 
 ### SECTION 10: DATA EXFILTRATION
 
-**Staging Tool:** `st.exe`  
-**Staging Tool SHA256:** `512a1f4ed9f512572608c729a2b89f44ea66a40433073aedcd914bd2d33b7015`  
-**Staging Archive:** `exfil_data.zip`  
+**Cyber Range Investigation Flags:**
+* **🚩 Q30 - Staging Tool:** What staging tool compressed the data? **`st.exe`**
+* **🚩 Q31 - Staging Hash:** What is the SHA256 of the staging tool? **`512a1f4ed9f512572608c729a2b89f44ea66a40433073aedcd914bd2d33b7015`**
+* **🚩 Q32 - Exfil Archive:** What archive was created? **`exfil_data.zip`**
 
 **Analysis:** During the investigation into potential data exfiltration, an analysis of `DeviceFileEvents` was conducted to identify the creation of the staging archive `exfil_data.zip`. The logs revealed that on January 27, 2026, at 22:24:09 UTC, the executable `st.exe` was responsible for creating this compressed archive on the host `as-srv` in the `C:\Users\Public\` directory prior to exfiltration.
 
@@ -460,12 +463,14 @@ DeviceFileEvents
 
 ### SECTION 11: RANSOMWARE DEPLOYMENT
 
-**Ransomware Payload:** `updater.exe`  
-**Payload Stager:** `powershell.exe`  
-**Ransomware SHA256:** `e609d070ee9f76934d73353be4ef7ff34b3ecc3a2d1e5d052140ed4cb9e4752b`  
-**Encryption Start Time:** 22:18:33 UTC  
-**Recovery Prevention Command:** `vssadmin delete shadows /all /quiet`  
-**Cleanup Script:** `clean.bat`  
+**Cyber Range Investigation Flags:**
+* **🚩 Q33 - Ransomware Filename:** What is the ransomware filename? **`updater.exe`**
+* **🚩 Q34 - Ransomware Hash:** What is the SHA256 of the ransomware? **`e609d070ee9f76934d73353be4ef7ff34b3ecc3a2d1e5d052140ed4cb9e4752b`**
+* **🚩 Q35 - Ransomware Staging:** What process staged the ransomware on AS-SRV? **`powershell.exe`**
+* **🚩 Q36 - Recovery Prevention:** What command was used? **`vssadmin delete shadows /all /quiet`**
+* **🚩 Q37 - Ransom Note Origin:** What process dropped the ransom note? **`updater.exe`**
+* **🚩 Q38 - Encryption Start:** What time was the ransom note dropped? **`22:18:33`**
+* **🚩 Q39 - Cleanup Script:** What script deleted the ransomware? **`clean.bat`**
 
 **Analysis:** The ransomware executable was staged by `powershell.exe` and disguised as a legitimate background process named `updater.exe`. A review of the execution timestamps against the creation of the ransom notes (22:18:33 UTC) identified the malicious payload hash. Prior to the encryption phase, the threat actor initiated a sequence of commands on `as-pc2` using `wsync.exe` to prevent system recovery, primarily using `vssadmin delete shadows /all /quiet`. Following the encryption, the process `cmd.exe` executed a script named `clean.bat` in the `C:\ProgramData\` directory to delete the malicious executables and hinder forensic analysis.
 
@@ -480,7 +485,6 @@ DeviceFileEvents
 ```
 *<img width="800" alt="Q33" src="https://github.com/user-attachments/assets/1786dafb-654d-4576-90cb-012ecbed1561" />*
 
-
 **Query Used (Ransomware Hash):**
 ```kusto
 DeviceProcessEvents
@@ -491,7 +495,6 @@ DeviceProcessEvents
 ```
 *<img width="800" alt="Q34" src="https://github.com/user-attachments/assets/d01209fb-c712-4b7e-8008-cad3a6c0fbb8" />*
 
-
 **Query Used (Ransomware Staging):**
 ```kusto
 DeviceFileEvents
@@ -501,7 +504,6 @@ DeviceFileEvents
 | project TimeGenerated, DeviceName, ActionType, FileName, FolderPath, InitiatingProcessFileName
 ```
 *<img width="800" alt="Q35" src="https://github.com/user-attachments/assets/bbbc24d9-25bb-4c06-be78-f281c2fdae89" />*
-
 
 **Query Used (Recovery Prevention):**
 ```kusto
@@ -514,8 +516,7 @@ DeviceProcessEvents
 ```
 *<img width="800" alt="Q36" src="https://github.com/user-attachments/assets/19c0af9d-cbb8-4e22-b7ef-bfa071f919e3" />*
 
-
-**Query Used (Ransom Note Creation & Timestamp):**
+**Query Used (Ransom Note Creation):**
 ```kusto
 DeviceFileEvents
 | where FileName =~ "akira_readme.txt"
@@ -524,6 +525,16 @@ DeviceFileEvents
 | take 1
 ```
 *<img width="800" alt="Q37" src="https://github.com/user-attachments/assets/c3dd888f-6222-4ef3-a458-784ac6a55b80" />*
+
+**Query Used (Ransom Note Timestamp):**
+```kusto
+DeviceFileEvents
+| where FileName =~ "akira_readme.txt"
+| project TimeGenerated, DeviceName, InitiatingProcessFileName, FileName, FolderPath
+| sort by TimeGenerated asc
+| take 1
+```
+*<img width="982" height="288" alt="Q38" src="https://github.com/user-attachments/assets/571335f1-70f6-4d70-9ef6-11b65782be56" />*
 
 **Query Used (Cleanup Script):**
 ```kusto
@@ -539,7 +550,8 @@ DeviceFileEvents
 
 ### SECTION 12: FINAL INCIDENT SCOPE
 
-**Compromised Hosts:** `as-pc2`, `as-srv`  
+**Cyber Range Investigation Flags:**
+* **🚩 Q40 - Affected Hosts:** What hosts were compromised? **`as-pc2, as-srv`**
 
 **Analysis:** Based on a comprehensive review of the environment using the specific malicious SHA256 hashes identified during the investigation, the scope of the compromise was strictly limited to two hosts: `as-pc2` (initial access and staging) and `as-srv` (lateral movement and primary encryption target).
 
