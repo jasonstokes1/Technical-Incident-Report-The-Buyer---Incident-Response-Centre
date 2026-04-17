@@ -2,9 +2,7 @@
 
 ## 📌 Overview
 
-This investigation analyzes a real-world ransomware attack targeting Ashford Sterling Recruitment, where an attacker gained unauthorized access, disabled security controls, and deployed Akira ransomware across critical systems.
-
-The attacker gained access through an exposed remote access tool, disabled security controls, moved laterally across the network, exfiltrated sensitive data, and deployed Akira ransomware to encrypt critical systems.
+This investigation analyzes a real-world ransomware attack targeting Ashford Sterling Recruitment, where an attacker gained unauthorized access, disabled security controls, moved laterally across the network, exfiltrated sensitive data, and deployed Akira ransomware across critical systems.
 
 ---
 
@@ -43,7 +41,7 @@ The attacker gained access using a pre-installed remote access tool (AnyDesk), e
 
 ## 🌍 Attacker Infrastructure
 
-External connections to an untrusted public IP confirmed active attacker-controlled access.
+External connections to a foreign IP address confirmed attacker-controlled access.
 
 *<img width="800" alt="Q17" src="https://github.com/user-attachments/assets/8a9d3c39-605b-4153-a091-69c7059c7e59" />*
 
@@ -62,6 +60,8 @@ Microsoft Defender protections were disabled via registry modification, allowing
 The attacker targeted the LSASS process to extract administrator credentials.
 
 *<img width="800" alt="Q14" src="https://github.com/user-attachments/assets/06d81708-4e3e-42c3-816e-e535d26aa0db" />*
+
+---
 
 ## 🧭 Lateral Movement
 
