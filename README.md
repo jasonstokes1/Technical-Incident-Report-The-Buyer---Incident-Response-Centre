@@ -1,12 +1,12 @@
-# 🛡️ Akira Ransomware Incident Response Investigation
+# Akira Ransomware Incident Response Investigation
 
-## 📌 Overview
+## Overview
 
 This investigation analyzes a real-world ransomware attack targeting Ashford Sterling Recruitment, where an attacker gained unauthorized access, disabled security controls, moved laterally across the network, exfiltrated sensitive data, and deployed Akira ransomware across critical systems.
 
 ---
 
-## 🎯 Key Skills Demonstrated
+## Key Skills Demonstrated
 
 - Threat Hunting (KQL)
 - Incident Response
@@ -16,7 +16,7 @@ This investigation analyzes a real-world ransomware attack targeting Ashford Ste
 
 ---
 
-## 🚨 Executive Summary
+## Executive Summary
 
 On January 27, 2026, Ashford Sterling Recruitment experienced a ransomware attack attributed to the **Akira** threat group.
 
@@ -39,7 +39,7 @@ The attacker gained access using a pre-installed remote access tool (AnyDesk), e
 
 ---
 
-## 🌍 Attacker Infrastructure
+## Attacker Infrastructure
 
 External connections to a foreign IP address confirmed attacker-controlled access.
 
@@ -63,7 +63,7 @@ The attacker targeted the LSASS process to extract administrator credentials.
 
 ---
 
-## 🧭 Lateral Movement
+## Lateral Movement
 
 Using stolen credentials, the attacker moved from the compromised workstation to a critical file server.
 
@@ -71,7 +71,7 @@ Using stolen credentials, the attacker moved from the compromised workstation to
 
 ---
 
-## 🌐 Command & Control (C2)
+## Command & Control (C2)
 
 A malicious beacon (`wsync.exe`) was deployed to maintain communication with attacker infrastructure.
 
@@ -79,7 +79,7 @@ A malicious beacon (`wsync.exe`) was deployed to maintain communication with att
 
 ---
 
-## 📤 Data Exfiltration
+## Data Exfiltration
 
 Sensitive data was compressed into an archive prior to exfiltration.
 
@@ -87,7 +87,7 @@ Sensitive data was compressed into an archive prior to exfiltration.
 
 ---
 
-## 💥 Ransomware Execution
+## Ransomware Execution
 
 The ransomware payload was deployed, encrypting files and dropping a ransom note.
 
@@ -95,7 +95,7 @@ The ransomware payload was deployed, encrypting files and dropping a ransom note
 
 ---
 
-## 🧭 MITRE ATT&CK Mapping
+## MITRE ATT&CK Mapping
 
 | Tactic | Technique | Description |
 |-------|----------|-------------|
@@ -109,7 +109,7 @@ The ransomware payload was deployed, encrypting files and dropping a ransom note
 
 ---
 
-## 📌 Indicators of Compromise (IOCs)
+## Indicators of Compromise (IOCs)
 
 **IP Addresses:**
 - 88.97.164.155  
@@ -128,7 +128,7 @@ The ransomware payload was deployed, encrypting files and dropping a ransom note
 
 ---
 
-## 🔒 Recommendations
+## Recommendations
 
 - Restrict unauthorized remote access tools (AnyDesk)
 - Enforce least privilege access controls
@@ -139,7 +139,7 @@ The ransomware payload was deployed, encrypting files and dropping a ransom note
 
 ---
 
-## 🧠 Analyst Insight
+## Analyst Insight
 
 This attack demonstrates how legitimate remote access tools can be abused to bypass traditional perimeter defenses.
 
@@ -149,7 +149,7 @@ This case highlights the importance of controlling remote access tools, enforcin
 
 ---
 
-## 📎 Conclusion
+## Conclusion
 
 This investigation successfully traced the attacker from initial access through ransomware deployment.
 
